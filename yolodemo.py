@@ -116,8 +116,8 @@ class myModule(ALModule):
 
 	def analyseImage(self,image,filename):
 		#TODO
-		filename = 'D:\\foto\\IMG_9324.jpg'
-		r = requests.post("http://localhost:1234/detect",
+		#filename = 'D:\\foto\\IMG_9324.jpg'
+		r = requests.post("http://"+configuration.YOLO_IP+":" + str(configuration.YOLO_PORT)+"/detect",
 						  files = {'image': open(filename,'rb')},
 						  data={'model': 'yolo4'})
 		print(r.status_code, r.reason)
