@@ -3,11 +3,14 @@ import os
 import sys
 import platform
 
-useLocalhost = True
+useLocalhost = False
 
 PEPPER_IP = "192.168.1.5"
 TABLETPEPPER_IP = "192.168.1.10"
 PEPPER_PORT = 9559
+
+#Language = 'ENG'
+Language = 'ITA'
 
 
 print ("platform:",platform.node())

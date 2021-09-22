@@ -32,6 +32,10 @@ class HumanGreeterModule(ALModule):
 
         self.tts = ALProxy("ALTextToSpeech")
 
+        print ("SONO NATOOOOOOO")
+        print "th:",self.tts.getASRConfidenceThreshold()
+
+
         # Subscribe to the FaceDetected event:
         global memory
         memory = ALProxy("ALMemory")
@@ -39,6 +43,7 @@ class HumanGreeterModule(ALModule):
             "HumanGreeter",
             "onInput")
         print("yeah!")
+
 
     def onInput(self, *_args):
         """ This will be called each time a face is

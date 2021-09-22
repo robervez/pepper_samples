@@ -1,7 +1,8 @@
 topic: ~topic_yolo()
 language: iti
 
-concept:(cosa_vedi) [Pepper]
 
-u:(ciao) Ciao! Dimmi 'Pepper' e ti dirò cosa vedo!
-u:(Pepper) Un attimo che guardo... $triggerCapture=1
+u: (Cosa)  COSA!
+#u:(ciao) Ciao! Dimmi Guarda qui e ti dirò cosa vedo!
+u:("Pepper cosa vedi"?) Un attimo che guardo... $triggerCapture=1
+u:("Cosa vedi?") Un attimo che guardo... $triggerCapture=1

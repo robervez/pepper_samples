@@ -22,9 +22,9 @@ YoloModule = None
 class ImageGetter():
 	def __init__(self):
 		self.video_service = ALProxy("ALVideoDevice")
-		resolution = 2  # VGA
+		resolution = 5#3  # VGA
 		colorSpace = 11  # RGB
-		self.video_service.setActiveCamera(2)
+		self.video_service.setActiveCamera(0)
 
 		for idx in self.video_service.getSubscribers():
 			if idx.startswith('python_client_yolo'):
@@ -32,7 +32,7 @@ class ImageGetter():
 
 
 
-		self.videoClient = self.video_service.subscribe("python_client_yolo", resolution, colorSpace, 5)
+		self.videoClient = self.video_service.subscribe("python_client_yolo", resolution, colorSpace, 10)
 		print ('videoclientID: ',self.videoClient)
 
 	def __del__(self):
@@ -58,6 +58,23 @@ class ImageGetter():
 		return naoImage
 
 
+def PepperSay(message, tts):
+	global memory
+
+	try:
+
+		if memory is not None:
+			memory.unsubscribeToEvent("Dialog/LastInput","YoloModule")
+
+		if tts is not None:
+			tts.say(message)
+
+		if memory is not None:
+			memory.subscribeToEvent("Dialog/LastInput","YoloModule", "onInput")
+	except:
+		pass
+
+
 # create python module
 class myModule(ALModule):
 	"""python class myModule test auto documentation: comment needed to create a new python module"""
@@ -72,10 +89,28 @@ class myModule(ALModule):
 	def close(self):
 		self.mycamera.close()
 
-	def onInput(self, *_args):
-		print ("yeah")
+	def onInput(self, key, value, message):
+
+		awp = ALProxy("ALBasicAwareness")
+		awp.pauseAwareness()
+
+		global memory
+		print memory.getData("Dialog/LastInput")
+		if memory.getData("Dialog/LastInput")=='':
+			return
+		#print memory.getDataListName()
+
+		print ("yeah:",key, value, message)
+
 		#self.tts.say("yeah!")
+		#PepperSay("mmm...",self.tts)
 		image = self.mycamera.getImage()
+		awp.resumeAwareness()
+		#print ("image:", image)
+
+		if image is None:
+
+			return
 
 		print "width of the image:		", image[0]
 		print "height of the image:		", image[1]
@@ -100,7 +135,10 @@ class myModule(ALModule):
 		self.saveImage(risimage, 'PNG', 'camImage.png')
 		risposta = self.analyseImage(risimage,'camImage.png')
 		print (risposta)
-		self.tts.say(risposta)
+
+
+		PepperSay(risposta,self.tts)
+
 
 
 
@@ -133,24 +171,54 @@ class myModule(ALModule):
 		return risstr.encode('ascii', 'replace')
 
 def createDialog(dlg, tts):
-	dlg.setLanguage("Italian")
-	f = open("topic_yolo.top", "r")
-	topicContent = f.read()
-	f.close()
+	if configuration.Language == 'ENG':
+		dlg.setLanguage("English")
+
+		print "English loaded topics:", dlg.getLoadedTopics("English")
+
+		for topic in dlg.getLoadedTopics("English"):
+			if topic=='topic_yolo':
+				dlg.unloadTopic(topic)
 
 
-	topicName = dlg.loadTopicContent (topicContent)
-	print topicName
-	dlg.activateTopic(topicName)
+		f = open("topic_eng.top", "r")
+		topicContent = f.read()
+		f.close()
+
+		topicName = dlg.loadTopicContent (topicContent)
+		print topicName
+		dlg.activateTopic(topicName)
 
 
-	tts.say("Ciao! Dimmi 'Pepper' e ti dirò cosa vedo!")
+	if configuration.Language == 'ITA':
+		dlg.setLanguage("Italian")
+
+		print "Italian loaded topics:", dlg.getLoadedTopics("Italian")
+
+		for topic in dlg.getLoadedTopics("Italian"):
+			if topic=='topic_yolo':
+				dlg.unloadTopic(topic)
+
+
+		f = open("topic_yolo.top", "r")
+		topicContent = f.read()
+		f.close()
+
+
+		topicName = dlg.loadTopicContent (topicContent)
+		print topicName
+		dlg.activateTopic(topicName)
+
+
+	# tts.say("Ciao! Dimmi e ti dirò cosa vedo!")
+	PepperSay("Ciao!",tts)
 
 	global memory
 	memory = ALProxy("ALMemory")
 
 	global YoloModule
 	YoloModule = myModule("YoloModule")
+
 
 	memory.subscribeToEvent("Dialog/LastInput","YoloModule", "onInput")
 
@@ -167,7 +235,10 @@ def main(pip, pport):
 	tts = ALProxy("ALTextToSpeech")
 	dlg = ALProxy("ALDialog")
 
+
 	print(tts)
+	dlg.setASRConfidenceThreshold(0.35)
+	print (dlg.getASRConfidenceThreshold())
 
 	createDialog(dlg,tts)
 
@@ -176,7 +247,7 @@ def main(pip, pport):
 			time.sleep(1)
 	except KeyboardInterrupt:
 		print "Interrupted by user, shutting down"
-		tts.say("ciao, a presto!")
+		PepperSay("ciao, a presto!",tts)
 		global YoloModule
 		YoloModule.close()
 		myBroker.shutdown()
